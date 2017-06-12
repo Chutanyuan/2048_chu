@@ -186,7 +186,6 @@ game.States.start = function () {
         if(Math.random()>0.5){
             value = 4;
         }
-        console.log("y --- = "+y);
         this.placeSquare(x, y, value);
     };
     /**
@@ -204,6 +203,7 @@ game.States.start = function () {
        var squareText = game.add.text(-45/2, -45/2, value, squareStyle);
        squareText.setTextBounds(0, 0, 45, 45);
        square.addChild(squareText);
+       this.canMove = false;
        console.log("x = "+x);
        console.log("y = "+y);
        console.log("value = "+value);
@@ -241,6 +241,9 @@ game.States.start = function () {
                     // 10+8*(x+1)+x*45+45/2;
                     this.squareMoveAndMerge(i, j, this.array[i][index], {x: this.transX(i), y: this.transY(index)},
                         index + 1 != j, this.array[i][index+1], {x: this.transX(i), y: this.transY(index+1)});
+                }else{
+                    this.canMove = true;
+                    console.log('this action run *** *** *** up *** *** ***');
                 }
             }
         }
@@ -258,6 +261,9 @@ game.States.start = function () {
                     }
                     this.squareMoveAndMerge(i, j, this.array[i][index], {x: this.transX(i), y: this.transY(index)},
                         index - 1 != j, this.array[i][index-1], {x: this.transX(i), y: this.transY(index-1)});
+                }else{
+                    this.canMove = true;
+                    console.log('this action run *** *** *** down *** *** ***');
                 }
             }
         }
@@ -275,6 +281,9 @@ game.States.start = function () {
                     }
                     this.squareMoveAndMerge(i, j, this.array[index][j], {x: this.transX(index), y: this.transY(j)},
                         index + 1 != i, this.array[index+1][j], {x: this.transX(index+1), y: this.transY(j)});
+                }else{
+                    this.canMove = true;
+                    console.log('this action run *** *** *** left *** *** ***');
                 }
             }
         }
@@ -292,6 +301,9 @@ game.States.start = function () {
                     }
                     this.squareMoveAndMerge(i, j, this.array[index][j], {x: this.transX(index), y: this.transY(j)},
                         index - 1 != i, this.array[index-1][j], {x: this.transX(index-1), y: this.transY(j)});
+                }else{
+                    this.canMove = true;
+                    console.log('this action run *** *** *** right *** *** ***');
                 }
             }
         }
@@ -307,15 +319,6 @@ game.States.start = function () {
     this.squareMoveAndMerge = function (i, j, arrNode, posJson, condition, nextArrNode, nextPosJson) {
         var that = this;
         var duration = 100;
-        console.log('**********************************');
-        console.log('arrNode x = ',arrNode.x);
-        console.log('arrNode y = ',arrNode.y);
-        console.log('arrNode value = ',arrNode.value);
-        console.log('**********************************');
-        console.log('this.array[i][j].x = ',this.array[i][j].x);
-        console.log('this.array[i][j].y = ',this.array[i][j].y);
-        console.log('this.array[i][j].value = ',this.array[i][j].value);
-        console.log('**********************************');
         if (arrNode.value == this.array[i][j].value) {
             arrNode.value = arrNode.value * 2;
             this.array[i][j].value = 0;
