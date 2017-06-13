@@ -119,7 +119,7 @@ game.States.start = function () {
         this.rerunGame();
     };
     this.update = function () {
-        if (this.canMove){
+        if (this.canSwipe){
             if (this.DirectionWithMove.left.isDown){
                 console.log('left');
                 this.swipeLeft();
@@ -203,7 +203,6 @@ game.States.start = function () {
        var squareText = game.add.text(-45/2, -45/2, value, squareStyle);
        squareText.setTextBounds(0, 0, 45, 45);
        square.addChild(squareText);
-       this.canMove = false;
        console.log("x = "+x);
        console.log("y = "+y);
        console.log("value = "+value);
@@ -213,7 +212,7 @@ game.States.start = function () {
        square.scale.setTo(0.0, 0.0);
        var tween = game.add.tween(square.scale).to({x:1.0, y:1.0}, 100, Phaser.Easing.Sinusoidal.InOut, true);
        tween.onComplete.add(function() {
-           this.canMove = true;
+
        }, this);
    };
 
@@ -229,7 +228,6 @@ game.States.start = function () {
      *  swipe 检测
      * */
     this.swipeUp = function () {
-        this.canMove = false;
         this.canSwipe = false;
         for(var i=0; i<this.array.length; i++) {
             for(var j=1; j<this.array.length; j++) {
@@ -241,16 +239,12 @@ game.States.start = function () {
                     // 10+8*(x+1)+x*45+45/2;
                     this.squareMoveAndMerge(i, j, this.array[i][index], {x: this.transX(i), y: this.transY(index)},
                         index + 1 != j, this.array[i][index+1], {x: this.transX(i), y: this.transY(index+1)});
-                }else{
-                    this.canMove = true;
-                    console.log('this action run *** *** *** up *** *** ***');
                 }
             }
         }
         this.arrayNewNode();
     };
     this.swipeDown = function () {
-        this.canMove = false;
         this.canSwipe = false;
         for(var i=0; i<this.array.length; i++) {
             for(var j=this.array.length-2; j>=0; j--) {
@@ -261,16 +255,12 @@ game.States.start = function () {
                     }
                     this.squareMoveAndMerge(i, j, this.array[i][index], {x: this.transX(i), y: this.transY(index)},
                         index - 1 != j, this.array[i][index-1], {x: this.transX(i), y: this.transY(index-1)});
-                }else{
-                    this.canMove = true;
-                    console.log('this action run *** *** *** down *** *** ***');
                 }
             }
         }
         this.arrayNewNode();
     };
     this.swipeLeft = function () {
-        this.canMove = false;
         this.canSwipe = false;
         for(var i=1; i<this.array.length; i++) {
             for(var j=0; j<this.array.length; j++) {
@@ -281,16 +271,12 @@ game.States.start = function () {
                     }
                     this.squareMoveAndMerge(i, j, this.array[index][j], {x: this.transX(index), y: this.transY(j)},
                         index + 1 != i, this.array[index+1][j], {x: this.transX(index+1), y: this.transY(j)});
-                }else{
-                    this.canMove = true;
-                    console.log('this action run *** *** *** left *** *** ***');
                 }
             }
         }
         this.arrayNewNode();
     };
     this.swipeRight = function () {
-        this.canMove = false;
         this.canSwipe = false;
         for(var i=this.array.length-2; i>=0; i--) {
             for(var j=0; j<this.array.length; j++) {
@@ -301,9 +287,6 @@ game.States.start = function () {
                     }
                     this.squareMoveAndMerge(i, j, this.array[index][j], {x: this.transX(index), y: this.transY(j)},
                         index - 1 != i, this.array[index-1][j], {x: this.transX(index-1), y: this.transY(j)});
-                }else{
-                    this.canMove = true;
-                    console.log('this action run *** *** *** right *** *** ***');
                 }
             }
         }
@@ -319,8 +302,11 @@ game.States.start = function () {
     this.squareMoveAndMerge = function (i, j, arrNode, posJson, condition, nextArrNode, nextPosJson) {
         var that = this;
         var duration = 100;
-        if (arrNode.value == this.array[i][j].value) {
+        // 遇到了可以合并的
+        if (!arrNode.newNode && arrNode.value == this.array[i][j].value) {
+            console.log('调用调用   ---- 1 ');
             arrNode.value = arrNode.value * 2;
+            arrNode.newNode = true;
             this.array[i][j].value = 0;
             this.score = this.score + arrNode.value;
             this.scoreText.text = this.score;
@@ -328,11 +314,10 @@ game.States.start = function () {
                 this.best = this.score;
                 this.bestText.text = this.best;
             }
-
             // 渐渐透明后被kill掉
             var t1 = game.add.tween(arrNode.sprite).to({alpha: 0}, duration, Phaser.Easing.Linear.None, true);
             t1.onComplete.add(function () {
-                this.sprite.kill();
+                arrNode.sprite.kill();
                 that.placeSquare(this.x, this.y, this.value);
                 if (!that.canSwipe) {
                     that.canSwipe = true;
@@ -356,6 +341,7 @@ game.States.start = function () {
             var t = game.add.tween(this.array[i][j].sprite).to(posJson, duration, Phaser.Easing.Linear.None, true);
             t.onComplete.add(function () {
                 if (!that.canSwipe) {
+                    console.log('调用 2');
                     that.canSwipe = true;
                     that.generateSquare();
                 }
@@ -368,6 +354,7 @@ game.States.start = function () {
             var t = game.add.tween(this.array[i][j].sprite).to(nextPosJson, duration, Phaser.Easing.Linear.None, true);
             t.onComplete.add(function () {
                 if (!that.canSwipe) {
+                    console.log('调用 3');
                     that.canSwipe = true;
                     that.generateSquare();
                 }
